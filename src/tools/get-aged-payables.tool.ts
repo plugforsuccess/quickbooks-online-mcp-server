@@ -9,6 +9,7 @@ const toolSchema = z.object({
   vendor: z.string().optional().describe("Filter by vendor ID"),
   aging_method: z.enum(["Current", "Report_Date"]).optional().describe("Aging method"),
   days_per_aging_period: z.number().optional().describe("Days per aging period (default 30)"),
+  aging_period: z.number().optional().describe("Alias for days_per_aging_period"),
   num_periods: z.number().optional().describe("Number of aging periods (default 4)"),
 });
 

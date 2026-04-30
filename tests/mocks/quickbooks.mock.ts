@@ -219,6 +219,7 @@ export const mockQuickbooksClient = {
   authenticate: jest.fn<() => Promise<typeof mockQuickBooksInstance>>().mockResolvedValue(mockQuickBooksInstance),
   getQuickbooks: jest.fn<() => typeof mockQuickBooksInstance>().mockReturnValue(mockQuickBooksInstance),
   refreshAccessToken: jest.fn<() => Promise<{ access_token: string; expires_in: number }>>().mockResolvedValue({ access_token: 'mock-token', expires_in: 3600 }),
+  fetchReport: jest.fn<(reportName: string, params: Record<string, string | number | undefined>) => Promise<unknown>>().mockResolvedValue({}),
 };
 
 // Helper to create a successful callback mock
@@ -254,6 +255,8 @@ export function resetAllMocks() {
   });
   mockQuickbooksClient.authenticate.mockReset();
   mockQuickbooksClient.getQuickbooks.mockReset();
+  mockQuickbooksClient.fetchReport.mockReset();
   (mockQuickbooksClient.getQuickbooks as any).mockReturnValue(mockQuickBooksInstance);
   (mockQuickbooksClient.authenticate as any).mockResolvedValue(mockQuickBooksInstance);
+  (mockQuickbooksClient.fetchReport as any).mockResolvedValue({});
 }

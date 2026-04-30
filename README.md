@@ -143,6 +143,16 @@ Complete CRUD operations are available for all entity types:
 | **Customer Balance** | `get_customer_balance` | Current customer balances |
 | **Aged Payables** | `get_aged_payables` | Outstanding vendor bills |
 | **Vendor Expenses** | `get_vendor_expenses` | Expenses by vendor |
+| **Transaction List** | `get_transaction_list_by_account` | Transaction substantiation for tax prep |
+| **1099 Contractor Summary** | `get_1099_contractor_summary` | Vendor1099Contractor totals for 1099-NEC filing |
+
+> **Report response shape.** All report tools return `{ raw, normalized }`. `raw`
+> is the unmodified QBO response (deeply nested `Rows`/`ColData`); `normalized`
+> is a flattened `{ header, columns, rows, totals }` shape that's much easier
+> for AI assistants and dashboards to consume. See [USAGE.md](./USAGE.md) for
+> example calls. Reports are fetched directly via QBO's REST endpoint
+> `/v3/company/{realmId}/reports/{reportName}` with `Accept: application/json`
+> (QBO defaults to XML otherwise — known footgun).
 
 ---
 

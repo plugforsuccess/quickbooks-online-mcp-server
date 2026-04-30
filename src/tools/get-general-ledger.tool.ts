@@ -11,6 +11,11 @@ const toolSchema = z.object({
   account: z.string().optional().describe("Filter by account ID"),
   source_account: z.string().optional().describe("Filter by source account"),
   sort_by: z.string().optional().describe("Field to sort by"),
+  columns: z
+    .string()
+    .optional()
+    .describe("Comma-separated subset of columns to include (e.g. 'tx_date,txn_type,account_name,debt_amt,credit_amt')"),
+  date_macro: z.string().optional().describe('e.g. "This Month", "Year to Date"'),
 });
 
 const toolHandler = async ({ params }: any) => {

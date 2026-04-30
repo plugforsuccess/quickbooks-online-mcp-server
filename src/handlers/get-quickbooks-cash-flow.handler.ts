@@ -1,28 +1,36 @@
 import { quickbooksClient } from "../clients/quickbooks-client.js";
 import { ToolResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
+import { normalizeReport } from "../helpers/normalize-report.js";
+import { validateIsoDate } from "../helpers/validate-date.js";
+import { ReportResult } from "./get-quickbooks-profit-and-loss.handler.js";
 
 export interface CashFlowOptions {
   start_date?: string;
   end_date?: string;
-  summarize_column_by?: "Total" | "Month" | "Week" | "Days";
+  accounting_method?: "Cash" | "Accrual";
+  summarize_column_by?: "Total" | "Month" | "Quarter" | "Year" | "Week" | "Days";
+  date_macro?: string;
 }
 
-export async function getQuickbooksCashFlow(options: CashFlowOptions): Promise<ToolResponse<any>> {
+export async function getQuickbooksCashFlow(
+  options: CashFlowOptions
+): Promise<ToolResponse<ReportResult>> {
   try {
-    await quickbooksClient.authenticate();
-    const quickbooks = quickbooksClient.getQuickbooks();
-    const params: Record<string, any> = {};
-    if (options.start_date) params.start_date = options.start_date;
-    if (options.end_date) params.end_date = options.end_date;
-    if (options.summarize_column_by) params.summarize_column_by = options.summarize_column_by;
-
-    return new Promise((resolve) => {
-      (quickbooks as any).reportCashFlow(params, (err: any, report: any) => {
-        if (err) resolve({ result: null, isError: true, error: formatError(err) });
-        else resolve({ result: report, isError: false, error: null });
-      });
+    validateIsoDate(options.start_date, "start_date");
+    validateIsoDate(options.end_date, "end_date");
+    const raw = await quickbooksClient.fetchReport("CashFlow", {
+      start_date: options.start_date,
+      end_date: options.end_date,
+      accounting_method: options.accounting_method,
+      summarize_column_by: options.summarize_column_by,
+      date_macro: options.date_macro,
     });
+    return {
+      result: { raw, normalized: normalizeReport(raw) },
+      isError: false,
+      error: null,
+    };
   } catch (error) {
     return { result: null, isError: true, error: formatError(error) };
   }

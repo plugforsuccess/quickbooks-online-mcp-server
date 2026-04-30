@@ -5,26 +5,24 @@ import { normalizeReport } from "../helpers/normalize-report.js";
 import { validateIsoDate } from "../helpers/validate-date.js";
 import { ReportResult } from "./get-quickbooks-profit-and-loss.handler.js";
 
-export interface AgedPayablesOptions {
-  report_date?: string;
+export interface Contractor1099SummaryOptions {
+  start_date?: string;
+  end_date?: string;
   vendor?: string;
-  aging_method?: "Current" | "Report_Date";
-  aging_period?: number;
-  days_per_aging_period?: number;
-  num_periods?: number;
+  date_macro?: string;
 }
 
-export async function getQuickbooksAgedPayables(
-  options: AgedPayablesOptions
+export async function getQuickbooks1099ContractorSummary(
+  options: Contractor1099SummaryOptions
 ): Promise<ToolResponse<ReportResult>> {
   try {
-    validateIsoDate(options.report_date, "report_date");
-    const raw = await quickbooksClient.fetchReport("AgedPayables", {
-      report_date: options.report_date,
+    validateIsoDate(options.start_date, "start_date");
+    validateIsoDate(options.end_date, "end_date");
+    const raw = await quickbooksClient.fetchReport("Vendor1099Contractor", {
+      start_date: options.start_date,
+      end_date: options.end_date,
       vendor: options.vendor,
-      aging_method: options.aging_method,
-      days_per_aging_period: options.days_per_aging_period ?? options.aging_period,
-      num_periods: options.num_periods,
+      date_macro: options.date_macro,
     });
     return {
       result: { raw, normalized: normalizeReport(raw) },

@@ -337,6 +337,85 @@ class QuickbooksClient {
     }
     return this.quickbooksInstance;
   }
+
+  private getReportsBaseUrl(): string {
+    return this.environment === 'sandbox'
+      ? 'https://sandbox-quickbooks.api.intuit.com'
+      : 'https://quickbooks.api.intuit.com';
+  }
+
+  // Direct REST call against /v3/company/{realmId}/reports/{reportName}.
+  // node-quickbooks doesn't expose every report (TransactionList,
+  // Vendor1099Contractor) and silently drops query params it doesn't know
+  // about, so reports go through fetch directly. Auth/refresh is reused
+  // from the same client so the access token stays in one place.
+  async fetchReport(
+    reportName: string,
+    params: Record<string, string | number | undefined>
+  ): Promise<unknown> {
+    await this.authenticate();
+    if (!this.realmId) {
+      throw new Error(
+        'QUICKBOOKS_REALM_ID is missing. Set it in .env or run `npm run auth` to obtain one.'
+      );
+    }
+
+    const buildUrl = () => {
+      const url = new URL(
+        `${this.getReportsBaseUrl()}/v3/company/${this.realmId}/reports/${reportName}`
+      );
+      for (const [key, value] of Object.entries(params)) {
+        if (value === undefined || value === null || value === '') continue;
+        url.searchParams.set(key, String(value));
+      }
+      return url;
+    };
+
+    const doFetch = async () => {
+      const url = buildUrl();
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          // QBO defaults to XML when Accept is missing — known footgun.
+          Accept: 'application/json',
+        },
+      });
+      return { url, response };
+    };
+
+    let { url, response } = await doFetch();
+
+    if (response.status === 401) {
+      await this.refreshAccessToken();
+      ({ url, response } = await doFetch());
+    }
+
+    if (!response.ok) {
+      const bodyText = await response.text();
+      const redactedUrl = url.toString().replace(this.realmId, '<realmId>');
+      let qboMessage = bodyText;
+      try {
+        const parsed = JSON.parse(bodyText);
+        const fault = parsed?.Fault?.Error?.[0];
+        if (fault) {
+          qboMessage =
+            `[${fault.code ?? '?'}] ${fault.Message ?? ''}` +
+            (fault.Detail ? ` — ${fault.Detail}` : '');
+        }
+      } catch {
+        // Body wasn't JSON; fall back to raw text.
+      }
+      console.error(
+        `[qbo-client] Reports API ${response.status} for ${redactedUrl}: ${qboMessage}`
+      );
+      throw new Error(
+        `QuickBooks Reports API error (${response.status}): ${qboMessage}`
+      );
+    }
+
+    return response.json();
+  }
 }
 
 export const quickbooksClient = new QuickbooksClient({

@@ -8,6 +8,7 @@ const toolSchema = z.object({
   start_date: z.string().optional().describe("Start date (YYYY-MM-DD)"),
   end_date: z.string().optional().describe("End date (YYYY-MM-DD)"),
   accounting_method: z.enum(["Cash", "Accrual"]).optional().describe("Accounting method"),
+  date_macro: z.string().optional().describe('e.g. "This Month", "Year to Date"'),
 });
 
 const toolHandler = async ({ params }: any) => {

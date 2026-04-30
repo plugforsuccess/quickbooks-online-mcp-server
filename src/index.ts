@@ -200,6 +200,10 @@ import { GetAgedPayablesTool } from "./tools/get-aged-payables.tool.js";
 import { GetVendorExpensesTool } from "./tools/get-vendor-expenses.tool.js";
 import { GetVendorBalanceTool } from "./tools/get-vendor-balance.tool.js";
 
+// Tax-readiness Report tools
+import { GetTransactionListByAccountTool } from "./tools/get-transaction-list-by-account.tool.js";
+import { Get1099ContractorSummaryTool } from "./tools/get-1099-contractor-summary.tool.js";
+
 const main = async () => {
   // Create an MCP server
   const server = QuickbooksMCPServer.GetServer();
@@ -423,6 +427,10 @@ const main = async () => {
   RegisterTool(server, GetAgedPayablesTool);
   RegisterTool(server, GetVendorExpensesTool);
   RegisterTool(server, GetVendorBalanceTool);
+
+  // Add tax-readiness report tools
+  RegisterTool(server, GetTransactionListByAccountTool);
+  RegisterTool(server, Get1099ContractorSummaryTool);
 
   // Start receiving messages on stdin and sending messages on stdout
   const transport = new StdioServerTransport();
